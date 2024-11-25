@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import platingsRoutes from './routes/platingsRoutes.js';
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Environment Variables:', process.env);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
