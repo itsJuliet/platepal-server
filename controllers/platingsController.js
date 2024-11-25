@@ -93,3 +93,32 @@ export const createPlating = async (req, res) => {
       res.status(500).json({ error: 'Failed to create plating', details: err.message });
     }
   };
+
+  export const getPlatingById = async (req, res) => {
+    const { id } = req.params; 
+  
+    try {
+      const plating = await db('platings').where({ id }).first();
+  
+      if (!plating) {
+        return res.status(404).json({ error: 'Plating not found' });
+      }
+
+      res.status(200).json({
+        success: true,
+        plating: {
+          id: plating.id,
+          ingredients: plating.ingredients,
+          garnishes: plating.garnishes,
+          sauces: plating.sauces,
+          plate_style: plating.plate_style,
+          plating_style: plating.plating_style,
+          image_url: plating.image_url,
+          created_at: plating.created_at,
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching plating by ID:", err.message);
+      res.status(500).json({ error: 'Failed to fetch plating' });
+    }
+  };
