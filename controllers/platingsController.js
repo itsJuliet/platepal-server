@@ -1,5 +1,11 @@
 import db from '../db/knex.js';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { fileURLToPath } from 'url'; 
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const getPlatings = async (req, res) => {
   try {
@@ -15,6 +21,35 @@ export const getPlatings = async (req, res) => {
   } catch (err) {
     console.error("Error fetching platings:", err);
     res.status(500).json({ error: 'Failed to fetch platings' });
+  }
+};
+
+export const getPlatingById = async (req, res) => {
+  const { id } = req.params; 
+
+  try {
+    const plating = await db('platings').where({ id }).first();
+
+    if (!plating) {
+      return res.status(404).json({ error: 'Plating not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      plating: {
+        id: plating.id,
+        ingredients: plating.ingredients,
+        garnishes: plating.garnishes,
+        sauces: plating.sauces,
+        plate_style: plating.plate_style,
+        plating_style: plating.plating_style,
+        image_url: plating.image_url,
+        created_at: plating.created_at,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching plating by ID:", err.message);
+    res.status(500).json({ error: 'Failed to fetch plating' });
   }
 };
 
@@ -34,29 +69,32 @@ export const createPlating = async (req, res) => {
       if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
         console.log("Environment:", process.env.NODE_ENV);
         console.log("Using mock DALL·E image generation.");
-        image_url = 'https://mock-image-url.com/example.jpg'; 
+        image_url = 'http://localhost:8080/images/ex1.png'; 
       } else {
-        console.log("Calling OpenAI API for image generation.");
+        console.log("Calling OpenAI API for real image generation.");
+  
+        const prompt = `A beautifully plated dish with ingredients: ${ingredients}, garnishes: ${garnishes}, sauces: ${sauces}, on a ${plate_style} in ${plating_style} style.`;
+  
         const response = await axios.post(
           'https://api.openai.com/v1/images/generations',
           {
-            prompt: `A beautifully plated dish with ingredients: ${ingredients}, garnishes: ${garnishes}, sauces: ${sauces}, on a ${plate_style} in ${plating_style} style.`,
-            n: 1,
-            size: '1024x1024',
+            prompt: prompt,
+            n: 1,  
+            size: '1024x1024',  
           },
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 
             },
           }
         );
   
         console.log("OpenAI API response:", response.data);
-        image_url = response.data.data[0].url; 
+  
+        image_url = response.data.data[0].url;
       }
   
-      
       console.log("Inserting new plating into the database.");
       const [insertedId] = await db('platings')
         .insert({
@@ -66,7 +104,7 @@ export const createPlating = async (req, res) => {
           plate_style,
           plating_style,
           image_url,
-          created_at: db.fn.now() 
+          created_at: db.fn.now(), 
         });
   
       const [newPlating] = await db('platings')
@@ -85,7 +123,7 @@ export const createPlating = async (req, res) => {
           sauces: newPlating.sauces,
           plate_style: newPlating.plate_style,
           plating_style: newPlating.plating_style,
-          created_at: newPlating.created_at
+          created_at: newPlating.created_at,
         },
       });
     } catch (err) {
@@ -94,31 +132,40 @@ export const createPlating = async (req, res) => {
     }
   };
 
-  export const getPlatingById = async (req, res) => {
-    const { id } = req.params; 
+  export const saveImageToGallery = async (req, res) => {
+    const { image_url } = req.body;  
+    
+    if (!image_url) {
+      return res.status(400).json({ error: 'No image URL provided' });
+    }
   
     try {
-      const plating = await db('platings').where({ id }).first();
+      console.log('Attempting to download image from:', image_url);
   
-      if (!plating) {
-        return res.status(404).json({ error: 'Plating not found' });
-      }
+      const response = await axios.get(image_url, { responseType: 'arraybuffer' });
 
-      res.status(200).json({
-        success: true,
-        plating: {
-          id: plating.id,
-          ingredients: plating.ingredients,
-          garnishes: plating.garnishes,
-          sauces: plating.sauces,
-          plate_style: plating.plate_style,
-          plating_style: plating.plating_style,
-          image_url: plating.image_url,
-          created_at: plating.created_at,
-        },
+      console.log('Image downloaded with status:', response.status);
+  
+      if (!response.data) {
+        throw new Error('No image data received');
+      }
+  
+      const fileName = `${uuidv4()}.jpg`; 
+  
+      const filePath = path.join(__dirname, '..', 'public', 'images', fileName);
+  
+      console.log('Saving image to:', filePath);
+  
+      fs.writeFileSync(filePath, response.data);
+  
+      console.log('Image saved successfully');
+  
+      return res.status(200).json({
+        message: 'Image saved successfully',
+        savedImagePath: `/images/${fileName}`,
       });
     } catch (err) {
-      console.error("Error fetching plating by ID:", err.message);
-      res.status(500).json({ error: 'Failed to fetch plating' });
+      console.error('Error saving image:', err.message);
+      return res.status(500).json({ error: 'Failed to save image', details: err.message });
     }
   };
