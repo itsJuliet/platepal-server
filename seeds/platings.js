@@ -12,7 +12,7 @@ export async function seed(knex) {
       sauces: 'Butter sauce',
       plate_style: 'Stone oval plate',
       plating_style: 'Modern',
-      image_url: 'images/ex1.png',
+      image_url: '/images/ex1.png',
     },
     {
       ingredients: 'Salmon, Potatoes, Dill, Lemon',
@@ -20,7 +20,7 @@ export async function seed(knex) {
       sauces: 'Dill sauce',
       plate_style: 'White round plate',
       plating_style: 'Rustic',
-      image_url: 'images/ex2.png',
+      image_url: '/images/ex2.png',
     },
     {
       ingredients: 'Beef, Broccoli',
@@ -28,7 +28,7 @@ export async function seed(knex) {
       sauces: 'Peppercorn Sauce',
       plate_style: 'Square Plate',
       plating_style: 'Minimalist',
-      image_url: 'images/ex3.png',
+      image_url: '/images/ex3.png',
     }
   ]);
 }

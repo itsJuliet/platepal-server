@@ -4,12 +4,12 @@ import * as platingsController from '../controllers/platingsController.js';
 const router = express.Router();
 
 router
-  .route("/")
+  .route("/gallery")
   .get(platingsController.getPlatings)
   .post(platingsController.createPlating);
 
 router
-  .route("/:id")
+  .route("/gallery/:id")
   .get(platingsController.getPlatingById);
 
 export default router;

@@ -2,12 +2,17 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import platingsRoutes from './routes/platingsRoutes.js';
+import path from 'path';
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const __dirname = path.resolve();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 app.get('/', (req, res) => {
     res.send('Server is running. Access the API at /api/platings');
