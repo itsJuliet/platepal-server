@@ -12,9 +12,8 @@ router
   .route("/gallery/:id")
   .get(platingsController.getPlatingById);
 
-
 router
-.route("/save-image")
-.post(platingsController.saveImageToGallery);
+  .route("/save-image")
+  .post(platingsController.saveImageToGallery);
 
 export default router;
