@@ -70,45 +70,45 @@ Base URL: http://localhost:8080/api/platings
 
 **Endpoints**
 1. Get All Platings
-URL: /gallery
-Method: GET
-Description: Fetches all platings from the database.
-Response:
+- URL: /gallery
+- Method: GET
+- Description: Fetches all platings from the database.
+- Response:
 ![](public/GETGallery.png)
 
 
 2. Get a Single Plating by ID
-URL: /gallery/:id
-Method: GET
-Description: Fetches a specific plating by its ID.
-URL Parameters:
-id (integer): The ID of the plating.
-Response:
+- URL: /gallery/:id
+- Method: GET
+- Description: Fetches a specific plating by its ID.
+- URL Parameters:
+- id (integer): The ID of the plating.
+- Response:
 ![](public/GETGalleryId.png)
 
 3. Create a New Plating
-URL: /gallery
-Method: POST
-Description: Creates a new plating and generates an image using OpenAI DALL·E.
-Request Body:
+- URL: /gallery
+- Method: POST
+- Description: Creates a new plating and generates an image using OpenAI DALL·E.
+- Request Body:
 ![](public/POSTGallery.png)
-Response:
+- Response:
 ![](public/POSTGalleryRes.png)
 
 4. Save Image to Gallery
-URL: /save-image
-Method: POST
-Description: Saves AI generated image to the gallery.
-Request Body:
+- URL: /save-image
+- Method: POST
+- Description: Saves AI generated image to the gallery.
+- Request Body:
 ![](public/POSTSave.png)
-Response:
+- Response:
 ![](public/POSTSaveRes.png)
 
 5. Static Image Fetching
-URL: /images/:filename
-Method: GET
-Description: Fetches static image files stored in the public/images directory.
-URL Parameters:
+- URL: /images/:filename
+- Method: GET
+- Description: Fetches static image files stored in the public/images directory.
+- URL Parameters:
 filename (string): The name of the image file (e.g., example.png).
 
 
