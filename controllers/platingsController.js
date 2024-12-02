@@ -9,10 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const getPlatings = async (req, res) => {
   try {
-    console.log("Fetching all platings from the database.");
     const platings = await db('platings').select();
-    console.log("Platings retrieved:", platings);
-
+    
     res.status(200).json({
       success: true,
       platings: platings.map(plating => ({
@@ -20,7 +18,6 @@ export const getPlatings = async (req, res) => {
         image_url: plating.image_url,
         local_image_path: plating.local_image_path,
       })),
-      message: "Platings retrieved successfully. Check the server logs for details.",
     });
   } catch (err) {
     console.error("Error fetching platings:", err);
@@ -59,8 +56,6 @@ export const getPlatingById = async (req, res) => {
 };
 
 export const createPlating = async (req, res) => {
-  console.log("NODE_ENV is:", process.env.NODE_ENV);
-
   const { ingredients, garnishes, sauces, plate_style, plating_style } = req.body;
 
   if (!ingredients || !garnishes || !sauces || !plate_style || !plating_style) {
@@ -72,13 +67,9 @@ export const createPlating = async (req, res) => {
     let image_url;
 
     if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
-      console.log("Using mock DALL·E image generation.");
       image_url = "http://localhost:8080/images/ex2.png";
     } else {
-      console.log("Calling OpenAI API for real image generation.");
-
       const prompt = `A beautifully plated dish with ingredients: ${ingredients}, garnishes: ${garnishes}, sauces: ${sauces}, on a ${plate_style} plate in ${plating_style} style.`;
-
       const response = await axios.post(
         "https://api.openai.com/v1/images/generations",
         {
@@ -95,15 +86,12 @@ export const createPlating = async (req, res) => {
           timeout: 120000,
         }
       );
-
       if (response.data?.data?.[0]?.url) {
         image_url = response.data.data[0].url;
       } else {
         throw new Error("No image URL found in OpenAI response");
       }
     }
-
-    console.log("Image URL generated:", image_url);
 
     const [insertedId] = await db('platings')
       .insert({
@@ -118,9 +106,8 @@ export const createPlating = async (req, res) => {
 
     const [newPlating] = await db('platings')
       .where('id', insertedId);
-
+    
     const local_image_path = `/images/${insertedId}.jpg`; 
-
     res.status(201).json({
       success: true,
       message: "Plating generated successfully",
@@ -134,7 +121,6 @@ export const createPlating = async (req, res) => {
       message: err.message,
       stack: err.stack,
     });
-
     res.status(500).json({
       error: "Failed to generate plating",
       details: process.env.NODE_ENV === "development" ? err.message : undefined,
@@ -144,27 +130,26 @@ export const createPlating = async (req, res) => {
 
 export const saveImageToGallery = async (req, res) => {
   const { image_url, ingredients, garnishes, sauces, plate_style, plating_style } = req.body;
-
+  
   if (!image_url || !ingredients || !garnishes || !sauces || !plate_style || !plating_style) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
-    console.log('Attempting to download image from:', image_url);
-
     const response = await axios.get(image_url, { responseType: 'arraybuffer' });
-    console.log('Image downloaded with status:', response.status);
-
     if (!response.data) {
       throw new Error('No image data received');
     }
 
     const fileName = `${uuidv4()}.jpg`; 
     const filePath = path.join(__dirname, '..', 'public', 'images', fileName);
-    console.log('Saving image to:', filePath);
 
-    fs.writeFileSync(filePath, response.data);
-    console.log('Image saved successfully');
+    try {
+      fs.writeFileSync(filePath, response.data);
+    } catch (fileError) {
+      console.error('Error writing file:', fileError.message);
+      return res.status(500).json({ error: 'Failed to save image to disk', details: fileError.message });
+    }
 
     const local_image_path = `/images/${fileName}`;
 
@@ -182,7 +167,7 @@ export const saveImageToGallery = async (req, res) => {
 
     const [newPlating] = await db('platings')
       .where('id', insertedId);
-
+    
     return res.status(200).json({
       message: 'Image saved and plating created successfully',
       savedImagePath: local_image_path,
