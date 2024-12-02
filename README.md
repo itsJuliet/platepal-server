@@ -91,7 +91,7 @@ Base URL: http://localhost:8080/api/platings
 - Method: POST
 - Description: Creates a new plating and generates an image using OpenAI DALL·E.
 - Request Body:
-![](public/POSTGallery.png)
+- ![](public/POSTGallery.png)
 - Response:
 ![](public/POSTGalleryRes.png)
 
