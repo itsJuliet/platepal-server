@@ -14,6 +14,10 @@ app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/api/platings', platingsRoutes); 
 
+app.get('/', (req, res) => {
+    res.send('Server is running. Access the API at /api/platings');
+});
+
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
 });
